@@ -64,3 +64,6 @@ cc <- nrow(test_recon)
 
 plotDigits(test_recon, test_rec_error, c((cc-25):cc))
 plotDigits(test_hex, test_rec_error, c((cc-25):cc))
+
+h2o.shutdown(prompt = FALSE)
+
