@@ -5,9 +5,10 @@ h2o.init(nthreads=-1, max_mem_size = '4G')
 #' builds a vector of autoencoder models, one per layer
 #'
 #' @param training_data
-#' @param layers
-#' @param args
-#' @return 
+#' @param layers array of hidden layer sizes
+#' @param args named arguments to pass onto h2o.deeplearning
+#' 
+#' @return  stacked array (list) of trained models
 #' 
 get_stacked_ae_array <- function(training_data, layers, args) {  
   vector <- c()
@@ -23,7 +24,7 @@ get_stacked_ae_array <- function(training_data, layers, args) {
                                         hidden=layers[i]),
                                    args))
     
-    training_data = h2o.deepfeatures(ae_model,training_data,layer=1)
+    training_data = h2o.deepfeatures(ae_model, training_data, layer=1)
     
     names(training_data) <- gsub("DF", paste0("L",index,sep=""), names(training_data)) 
     
@@ -68,13 +69,14 @@ summary(train_hex)
 # last column is the response
 response <- length(train_hex)
 
-train <- train_hex[,-response]
-test  <- test_hex [,-response]
-train_hex[,response] <- as.factor(train_hex[,response])
-test_hex [,response] <- as.factor(test_hex [,response])
+train <- train_hex[, -response]
+test  <- test_hex [, -response]
+train_hex[,response] <- as.factor(train_hex[, response])
+test_hex [,response] <- as.factor(test_hex [, response])
 
 ## Build reference model on full dataset and evaluate it on the test set
-model_ref <- h2o.deeplearning(training_frame=train_hex, x=1:(ncol(train_hex)-1), y=response, hidden=c(10), epochs=1)
+model_ref <- h2o.deeplearning(training_frame=train_hex, x=1:(ncol(train_hex)-1), y=response, 
+                              hidden=c(10), epochs=1)
 
 p_ref <- h2o.performance(model_ref, test_hex)
 h2o.logloss(p_ref)
@@ -83,7 +85,7 @@ h2o.logloss(p_ref)
 ## First AE model will compress the 717 non-const predictors into 200
 ## Second AE model will compress 200 into 100
 ## Third AE model will compress 100 into 50
-layers <- c(200,100,50)
+layers <- c(200, 100, 50)
 args <- list(activation="Tanh", epochs=1, l1=1e-5)
 ae <- get_stacked_ae_array(train, layers, args)
 
