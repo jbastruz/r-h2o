@@ -64,10 +64,8 @@ TEST <- 'test.csv.gz'
 train_hex <- h2o.uploadFile(path=file.path(datadir, TRAIN), header=F, sep=',')
 test_hex <- h2o.uploadFile(path=file.path(datadir, TEST), header=F, sep=',')
 
-summary(train_hex)
-
 # last column is the response
-response <- length(train_hex)
+response <- ncol(train_hex)
 
 train <- train_hex[, -response]
 test  <- test_hex [, -response]
@@ -75,21 +73,23 @@ train_hex[,response] <- as.factor(train_hex[, response])
 test_hex [,response] <- as.factor(test_hex [, response])
 
 ## Build reference model on full dataset and evaluate it on the test set
-model_ref <- h2o.deeplearning(training_frame=train_hex, x=1:(ncol(train_hex)-1), y=response, 
-                              hidden=c(10), epochs=1)
+model_ref <- h2o.deeplearning(training_frame=train_hex, x=1:(response-1), y=response, 
+                              hidden=c(50), epochs=1)
 
 p_ref <- h2o.performance(model_ref, test_hex)
-h2o.logloss(p_ref)
 
 ## Now build a stacked autoencoder model with three stacked layer AE models
-## First AE model will compress the 717 non-const predictors into 200
-## Second AE model will compress 200 into 100
-## Third AE model will compress 100 into 50
+## - AE model will compress the 717 non-const predictors into 200
+## - AE model will compress 200 into 150
+## - AE model will compress 150 into 100
+## - AE model will compress 100 into 50
+# layers <- c(200, 150, 100, 50)
 layers <- c(200, 100, 50)
+
 args <- list(activation="Tanh", epochs=1, l1=1e-5)
 ae <- get_stacked_ae_array(train, layers, args)
 
-## Now compress the training/testing data with this 3-stage set of AE models
+## Now compress the training/testing data with this multi-stage set of AE models
 train_compressed <- apply_stacked_ae_array(train, ae)
 test_compressed <- apply_stacked_ae_array(test, ae)
 
@@ -100,8 +100,15 @@ test_w_resp <- h2o.cbind(test_compressed, test_hex[,response])
 model_on_compressed_data <- h2o.deeplearning(training_frame=train_w_resp, x=1:(ncol(train_w_resp)-1), y=ncol(train_w_resp), hidden=c(10), epochs=1)
 
 p <- h2o.performance(model_on_compressed_data, test_w_resp)
+
+# performance comparisons
+h2o.logloss(p_ref)
 h2o.logloss(p)
 
 h2o.shutdown(prompt = FALSE)
 
+# > h2o.logloss(p_ref)
+# [1] 0.5669282
+# > h2o.logloss(p)
+# [1] 0.376578
 
