@@ -9,7 +9,7 @@ for (pkg in pkgs) {
 }
 
 # Now we download, install and initialize the H2O package for R.
-install.packages("h2o", type="source", repos=(c("http://h2o-release.s3.amazonaws.com/h2o/rel-turan/2/R")))
+install.packages("h2o", type="source", repos=(c("http://h2o-release.s3.amazonaws.com/h2o/rel-turchin/3/R")))
 
 library(h2o)
 h2o.init(ip="localhost", startH2O = TRUE)
