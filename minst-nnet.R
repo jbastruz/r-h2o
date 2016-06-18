@@ -1,7 +1,7 @@
 
 library(h2o)
 
-h2oServer <- h2o.init(nthreads=-1, max_mem_size = '4G')
+h2oServer <- h2o.init(nthreads=4, max_mem_size = '4G')
 
 datadir <- file.path(getwd(), 'data')
 
@@ -13,12 +13,18 @@ test_hex <- h2o.uploadFile(path=file.path(datadir, TEST), header=F, sep=',')
 
 summary(train_hex)
 
+# Start the clock!
+ptm <- proc.time()
+
 dlmodel <- h2o.deeplearning(
   x=1:length(train_hex),
   y=length(train_hex),
   training_frame = train_hex,
   validation_frame = test_hex,
   hidden=c(50,50), epochs=0.1, activation="Tanh")
+
+# Stop the clock
+proc.time() - ptm
 
 dlmodel
 
@@ -28,7 +34,13 @@ dlmodel
 #                                 hidden=list(c(10,10),c(20,20)), epochs=0.1,
 #                                 activation=c("Tanh", "Rectifier"), l1=c(0,1e-5))
 
-Sys.time()
+grid_search <- h2o.grid("deeplearning", x=c(1:784), y=785, training_frame=train_hex, 
+                        hyper_params = list( validation_frame=test_hex,
+                                             hidden=list(c(10,10),c(20,20)), epochs=0.1,
+                                             activation=c("Tanh", "Rectifier"), l1=c(0,1e-5)) )
+
+# Start the clock!
+ptm <- proc.time()
 
 record_model <- h2o.deeplearning(
   x = 1:length(train_hex), 
@@ -44,7 +56,8 @@ record_model <- h2o.deeplearning(
   classification_stop = -1
 )
 
-Sys.time()
+# Stop the clock
+proc.time() - ptm
 
 h2o.clusterInfo()
 h2o.ls()
