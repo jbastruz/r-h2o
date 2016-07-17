@@ -1,5 +1,5 @@
 # version to download
-h2oVersion <- "http://h2o-release.s3.amazonaws.com/h2o/rel-turchin/9/R"
+h2oVersion <- "http://h2o-release.s3.amazonaws.com/h2o/rel-turin/4/R"
 
 # The following two commands remove any previously installed H2O packages for R.
 if ("package:h2o" %in% search()) { detach("package:h2o", unload=TRUE) }
