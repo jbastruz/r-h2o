@@ -1,6 +1,7 @@
 # version to download
 #h2oVersion <- "http://h2o-release.s3.amazonaws.com/h2o/rel-turchin/9/R"
-h2oVersion <- "http://h2o-release.s3.amazonaws.com/h2o/rel-turing/7/R"
+#h2oVersion <- "http://h2o-release.s3.amazonaws.com/h2o/rel-turing/7/R"
+h2oVersion <- "http://h2o-release.s3.amazonaws.com/h2o/rel-tutte/1/R"
 
 # The following two commands remove any previously installed H2O packages for R.
 if ("package:h2o" %in% search()) { detach("package:h2o", unload=TRUE) }
@@ -17,6 +18,8 @@ install.packages("h2o", type="source", repos=h2oVersion)
 
 library(h2o)
 h2o.init(ip="localhost", startH2O = TRUE)
+
+h2o.getVersion()
 
 # Finally, let's run a demo to see H2O at work.
 # all demos under demo(package="h2o")
